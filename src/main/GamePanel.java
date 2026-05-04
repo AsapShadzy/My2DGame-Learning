@@ -44,47 +44,54 @@ public class GamePanel extends JPanel implements Runnable {
     @Override
     public void run() {
 
-        double drawInterval = 1000000000/FPS; // 0.16666 seconds
-        double nextDrawTime = System.nanoTime() + drawInterval;
+        double drawInterval = 1000000000/FPS;
+        double delta = 0;
+        long lastTime =  System.nanoTime();
+        long currentTime;
+
+        // For FPS display:
+        long timer = 0;
+        int drawCount = 0;
 
         while (gameThread != null) {
 
-            // 1. UPDATE: Update information such as character positions
-            update();
+            currentTime = System.nanoTime();
+            delta += (currentTime - lastTime) / drawInterval;
+            timer += (currentTime - lastTime); // For FPS display
+            lastTime = currentTime;
 
-            // 2. DRAW: Draw the screen with the updated information
-            repaint();
+            if (delta >= 1) {
+                update();
+                repaint();
+                delta--;
+                drawCount++; // Add Frame count
+            }
 
-            try {
-                double remainingTime = nextDrawTime - System.nanoTime();
-                remainingTime /= 1000000; // Converting to milliseconds
-
-                if (remainingTime < 0) {
-                    remainingTime = 0;
-                }
-
-                Thread.sleep((long) remainingTime);
-
-                nextDrawTime += drawInterval;
-
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            if (timer >= 1000000000) {
+                System.out.println("Fps: " + drawCount);
+                drawCount = 0;
+                timer = 0;
             }
 
         }
-
     }
 
     public void update() {
 
+        double currentSpeed = playerSpeed;
+
+        if ((keyH.upPressed || keyH.downPressed) && (keyH.leftPressed || keyH.rightPressed)) {
+            currentSpeed = playerSpeed * 0.7071;
+        }
+
         if (keyH.upPressed == true) {
-            playerY -= playerSpeed;
-        } else if (keyH.downPressed == true) {
-            playerY += playerSpeed;
-        } else if (keyH.leftPressed) {
-            playerX -= playerSpeed;
-        } else if (keyH.rightPressed) {
-            playerX += playerSpeed;
+            playerY -= currentSpeed;
+        } if (keyH.downPressed == true) {
+            playerY += currentSpeed;
+        } if (keyH.leftPressed) {
+            playerX -= currentSpeed;
+        } if (keyH.rightPressed) {
+            playerX += currentSpeed;
         }
 
     }
